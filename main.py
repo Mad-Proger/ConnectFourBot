@@ -1,8 +1,10 @@
-from bot import bot
+from src.bot import BotClass
+from src import config
 
 
 def main():
-    bot.bot_instance.infinity_polling()
+    bot = BotClass.BotClass(token=config.BOT_TOKEN)
+    bot.infinity_polling()
 
 
 if __name__ == "__main__":
