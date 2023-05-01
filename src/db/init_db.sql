@@ -5,6 +5,5 @@ CREATE TABLE IF NOT EXISTS Games (
 );
 
 CREATE TABLE IF NOT EXISTS WaitingPlayers (
-    chat_id INT NOT NULL,
-    player_name TEXT NOT NULL
+    chat_id INT NOT NULL UNIQUE
 );
