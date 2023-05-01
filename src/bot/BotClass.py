@@ -27,8 +27,9 @@ class BotClass(telebot.TeleBot):
         opponent = self.__db.find_opponent(player)
         if opponent is not None:
             self.__db.start_game(player, opponent)
-            self.send_message(player.chat_id, f"Your opponent is {opponent.username}")
-            self.send_message(opponent.chat_id, f"Your opponent is {player.username}")
+            self.send_message(player.chat_id, f"Your opponent is {opponent.username}. You're playing red")
+            self.send_message(opponent.chat_id, f"Your opponent is {player.username}. You're playing yellow")
+            self.__query_move(opponent)
             return
 
         self.__db.add_waiting_player(player)
@@ -42,3 +43,6 @@ class BotClass(telebot.TeleBot):
 
         self.__db.remove_waiting_player(player)
         self.send_message(player.chat_id, "Game search canceled")
+
+    def __query_move(self, player: types.Player):
+        pass

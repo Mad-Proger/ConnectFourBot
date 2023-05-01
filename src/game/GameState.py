@@ -1,5 +1,6 @@
 import enum
 from typing import Optional
+from src import config
 
 
 class TokenColor(enum.Enum):
@@ -10,9 +11,30 @@ class TokenColor(enum.Enum):
 class GameState:
     DIRECTION_VECTORS = ((1, 0), (1, 1), (0, 1), (-1, 0))
 
-    def __init__(self):
+    def __init__(self, code: int = config.START_POSITION_CODE):
         self.__columns = [[] for _ in range(7)]
-        self.__current_color = TokenColor.YELLOW
+        total_tokens = 0
+        for col in range(7):
+            mask = (1 << 7) - 1
+            bit_shift = 7 * col
+            column_code = (code & (mask << bit_shift)) >> bit_shift
+            cnt_tokens = 6
+            while column_code & (1 << cnt_tokens) == 0:
+                cnt_tokens -= 1
+            total_tokens += cnt_tokens
+            for i in range(cnt_tokens):
+                self.__columns[col].append(TokenColor.YELLOW if (column_code & (1 << i)) != 0
+                                           else TokenColor.RED)
+        self.__current_color = TokenColor.YELLOW if total_tokens % 2 == 0 else TokenColor.RED
+
+    def get_code(self) -> int:
+        res = 0
+        for column in range(7):
+            for row, token in enumerate(self.__columns[column]):
+                if token == TokenColor.YELLOW:
+                    res |= 1 << (7 * column + row)
+            res |= 1 << (7 * column + len(self.__columns[column]))
+        return res
 
     def place_token(self, column: int):
         if column not in range(7) or len(self.__columns[column]) == 6:
@@ -23,13 +45,6 @@ class GameState:
 
     def __change_player(self):
         self.__current_color = TokenColor.RED if self.__current_color == TokenColor.YELLOW else TokenColor.YELLOW
-
-    def __str__(self):
-        return " ".join("".join(color.value for color in column) for column in self.__columns)
-
-    def from_string(self, s: str):
-        for i, column_str in enumerate(s.split()):
-            self.__columns[i] = [TokenColor(c) for c in column_str]
 
     def __check_in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < len(self.__columns) and 0 <= y < len(self.__columns[x])

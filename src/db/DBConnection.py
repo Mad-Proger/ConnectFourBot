@@ -16,7 +16,7 @@ class DBConnection:
         cursor = self.__connection.execute("""SELECT game_state FROM Games
             WHERE first_player = $1 OR second_player = $1""", (player.chat_id,))
         row = cursor.fetchone()
-        return row[0] if row else None
+        return GameState(row[0]) if row else None
 
     def find_opponent(self, player: types.Player) -> Optional[types.Player]:
         cursor = self.__connection.execute("SELECT * FROM WaitingPlayers WHERE chat_id != $1 LIMIT 1",
@@ -40,4 +40,5 @@ class DBConnection:
     def start_game(self, first: types.Player, second: types.Player):
         self.__connection.execute("DELETE FROM WaitingPlayers WHERE chat_id = $1 OR chat_id = $2",
                                   (first.chat_id, second.chat_id))
-        self.__connection.execute("INSERT INTO Games VALUES ($1, $2, \"\")", (first.chat_id, second.chat_id))
+        self.__connection.execute("INSERT INTO Games VALUES ($1, $2, $3)",
+                                  (first.chat_id, second.chat_id, config.START_POSITION_CODE))
