@@ -36,8 +36,11 @@ class GameState:
             res |= 1 << (7 * column + len(self.__columns[column]))
         return res
 
+    def check_move(self, column: int) -> bool:
+        return column in range(7) and len(self.__columns[column]) < 6
+
     def place_token(self, column: int):
-        if column not in range(7) or len(self.__columns[column]) == 6:
+        if not self.check_move(column):
             raise IndexError
 
         self.__columns[column].append(self.__current_color)
@@ -65,10 +68,13 @@ class GameState:
             return 0
         return self.__count_direction(x, y, dx, dy) + self.__count_direction(x, y, -dx, -dy) - 1
 
+    def moves_made(self) -> int:
+        return sum(len(column) for column in self.__columns)
+
     def finished(self) -> bool:
         if self.get_winner_color() is not None:
             return True
-        return sum(len(column) for column in self.__columns) == 6 * 7
+        return self.moves_made() == 6 * 7
 
     def get_winner_color(self) -> Optional[TokenColor]:
         for x in range(len(self.__columns)):

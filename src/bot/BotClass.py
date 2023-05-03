@@ -68,8 +68,8 @@ class BotClass(telebot.TeleBot):
                 self.__query_move(opponent)
 
     def __announce_game_start(self, player: int, color: GameState.TokenColor):
-        self.send_message(player,
-                          f"Game starts. You're playing {'yellow' if color == GameState.TokenColor.YELLOW else 'red'}")
+        self.send_message(player, "Game starts. You're playing %s" %
+                          ("yellow" if color == GameState.TokenColor.YELLOW else "red"))
 
     def __announce_game_end(self, player: int, game: GameState.GameState):
         winner = game.get_winner_color()
