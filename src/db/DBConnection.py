@@ -51,3 +51,12 @@ class DBConnection:
     def update_game(self, player_id: int, game_state: GameState):
         self.__connection.execute("UPDATE Games SET game_state = $1 WHERE first_player = $2 OR second_player = $2",
                                   (game_state.get_code(), player_id))
+
+    def remove_game(self, player_id: int):
+        self.__connection.execute("DELETE FROM Games WHERE first_player = $1 OR second_player = $1", (player_id,))
+
+    def start_computer_game(self, player_id: int, moves_first: bool):
+        self.__connection.execute("INSERT INTO Games VALUES ($1, $2, $3)",
+                                  (player_id if moves_first else None,
+                                   None if moves_first else player_id,
+                                   config.START_POSITION_CODE))

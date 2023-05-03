@@ -1,16 +1,19 @@
 import telebot
 from src.db import DBConnection
 from src.game import GameState
+from src.game import Solver
 
 
 class BotClass(telebot.TeleBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__db = DBConnection.DBConnection()
+        self.__solver = Solver.Solver()
 
         self.message_handler(commands=["start_game"])(self.__start_game)
         self.message_handler(commands=["cancel_search"])(self.__cancel_search)
         self.message_handler(regexp=r"\d+")(self.__parse_move)
+        self.message_handler(commands=["play_computer"])(self.__play_computer)
 
     def __start_game(self, message: telebot.types.Message):
         player = message.chat.id
@@ -60,12 +63,18 @@ class BotClass(telebot.TeleBot):
         else:
             self.__db.update_game(player, game)
             opponent = self.__db.get_player_opponent(player)
+            if opponent is None:
+                game.place_token(self.__solver.find_optimal_column(game))
+
             if game.finished():
                 self.__announce_game_end(player, game)
-                self.__announce_game_end(opponent, game)
-            else:
-                self.__db.update_game(player, game)
-                self.__query_move(opponent)
+                if opponent:
+                    self.__announce_game_end(opponent, game)
+                self.__db.remove_game(player)
+                return
+
+            self.__db.update_game(player, game)
+            self.__query_move(opponent if opponent is not None else player)
 
     def __announce_game_start(self, player: int, color: GameState.TokenColor):
         self.send_message(player, "Game starts. You're playing %s" %
@@ -81,3 +90,16 @@ class BotClass(telebot.TeleBot):
                            ("Yellow" if winner == GameState.TokenColor.YELLOW else "Red")
         message_text = message_text + str(game)
         self.send_message(player, message_text)
+
+    def __play_computer(self, message: telebot.types.Message):
+        player = message.chat.id
+        if self.__db.get_player_game(player) is not None:
+            self.send_message(player, "You cannot play multiple games at once")
+            return
+        if self.__db.check_player_waiting(player):
+            self.send_message(player, "You are already waiting for the game. Be patient")
+            return
+
+        self.__db.start_computer_game(player, True)
+        self.__announce_game_start(player, GameState.TokenColor.YELLOW)
+        self.__query_move(player)
