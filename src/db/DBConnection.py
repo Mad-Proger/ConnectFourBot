@@ -18,7 +18,7 @@ class DBConnection:
         return GameState(row[0]) if row else None
 
     def get_player_opponent(self, player_id: int) -> int:
-        cursor = self.__connection.execute("""SELECT first_player, second_player FROM Games WHERE
+        cursor = self.__connection.execute("""SELECT first_player, second_player FROM Games
             WHERE first_player = $1 OR second_player = $1""", (player_id,))
         row = cursor.fetchone()
         return row[0] if row[0] != player_id else row[1]

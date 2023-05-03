@@ -76,6 +76,7 @@ class GameState:
         return self.get_winner_color() is not None
 
     def __str__(self):
-        return "\n".join("".join(self.__columns[col][line].value if line < len(self.__columns[col]) else " "
+        return "\n".join("".join("🔵" if line >= len(self.__columns[col]) else
+                                 "🟡" if self.__columns[col][line] == TokenColor.YELLOW else "🔴"
                                  for col in range(7))
                          for line in range(5, -1, -1))

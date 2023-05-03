@@ -43,7 +43,7 @@ class BotClass(telebot.TeleBot):
 
     def __query_move(self, player: int):
         game_state = self.__db.get_player_game(player)
-        self.send_message(player, "Make your move:\n" + str(game_state))
+        self.send_message(player, "Select column for your move:\n" + str(game_state))
 
     def __parse_move(self, message: telebot.types.Message):
         player = message.chat.id
@@ -62,9 +62,9 @@ class BotClass(telebot.TeleBot):
             opponent = self.__db.get_player_opponent(player)
             winner = game.get_winner_color()
             if winner is not None:
-                winner = "First" if winner == GameState.TokenColor.YELLOW else "Second"
-                self.send_message(player, f"Game finished. {winner} player is victorious")
-                self.send_message(opponent, f"Game finished. {winner} player is victorious")
+                winner = "Yellow" if winner == GameState.TokenColor.YELLOW else "Red"
+                self.send_message(player, f"Game finished. {winner} is victorious.\n" + str(game))
+                self.send_message(opponent, f"Game finished. {winner} is victorious\n" + str(game))
             else:
                 self.__db.update_game(player, game)
                 self.__query_move(opponent)
