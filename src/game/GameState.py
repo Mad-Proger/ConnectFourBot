@@ -65,6 +65,11 @@ class GameState:
             return 0
         return self.__count_direction(x, y, dx, dy) + self.__count_direction(x, y, -dx, -dy) - 1
 
+    def finished(self) -> bool:
+        if self.get_winner_color() is not None:
+            return True
+        return sum(len(column) for column in self.__columns) == 6 * 7
+
     def get_winner_color(self) -> Optional[TokenColor]:
         for x in range(len(self.__columns)):
             for y in range(len(self.__columns[x])):

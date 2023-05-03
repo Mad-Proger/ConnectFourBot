@@ -24,8 +24,8 @@ class BotClass(telebot.TeleBot):
         opponent = self.__db.find_opponent(player)
         if opponent is not None:
             self.__db.start_game(player, opponent)
-            self.send_message(player, f"Opponent found. You're playing red")
-            self.send_message(opponent, f"Opponent found. You're playing yellow")
+            self.__announce_game_start(player, GameState.TokenColor.RED)
+            self.__announce_game_start(opponent, GameState.TokenColor.YELLOW)
             self.__query_move(opponent)
             return
 
@@ -60,12 +60,24 @@ class BotClass(telebot.TeleBot):
         else:
             self.__db.update_game(player, game)
             opponent = self.__db.get_player_opponent(player)
-            winner = game.get_winner_color()
-            if winner is not None:
-                winner = "Yellow" if winner == GameState.TokenColor.YELLOW else "Red"
-                self.send_message(player, f"Game finished. {winner} is victorious.\n" + str(game))
-                self.send_message(opponent, f"Game finished. {winner} is victorious\n" + str(game))
+            if game.finished():
+                self.__announce_game_end(player, game)
+                self.__announce_game_end(opponent, game)
             else:
                 self.__db.update_game(player, game)
                 self.__query_move(opponent)
 
+    def __announce_game_start(self, player: int, color: GameState.TokenColor):
+        self.send_message(player,
+                          f"Game starts. You're playing {'yellow' if color == GameState.TokenColor.YELLOW else 'red'}")
+
+    def __announce_game_end(self, player: int, game: GameState.GameState):
+        winner = game.get_winner_color()
+        message_text = "Game ended. "
+        if winner is None:
+            message_text = message_text + "Draw\n"
+        else:
+            message_text = message_text + "%s is victorious\n" % \
+                           ("Yellow" if winner == GameState.TokenColor.YELLOW else "Red")
+        message_text = message_text + str(game)
+        self.send_message(player, message_text)
